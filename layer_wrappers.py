@@ -21,7 +21,9 @@ class Box(LayerWrapper):
         return Pixel()
 
     def display(self, start=None, end=None):
-        super().display(self.start if start is None else start, self.end if end is None else end)
+        start = self.start if start is None else start
+        end = self.end if end is None else end
+        super().display(start, end)
 
 
 class Transform(LayerWrapper):
@@ -39,7 +41,16 @@ class Stretch(LayerWrapper):
         self.amount = amount
 
     def get_pixel(self, point):
-        return self.wrapped_layer.get_pixel(point // amount)
+        return self.wrapped_layer.get_pixel(point // self.amount)
+
+
+class Compress(LayerWrapper):
+    def __init__(self, wrapped_layer, amount):
+        super().__init__(wrapped_layer)
+        self.amount = amount
+
+    def get_pixel(self, point):
+        return self.wrapped_layer.get_pixel(point * self.amount)
 
 
 class Move(LayerWrapper):
@@ -48,5 +59,5 @@ class Move(LayerWrapper):
         self.amount = amount
 
     def get_pixel(self, point):
-        return self.wrapped_layer.get_pixel(point - amount)
+        return self.wrapped_layer.get_pixel(point - self.amount)
 

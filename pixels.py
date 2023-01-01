@@ -1,6 +1,5 @@
 # -*- coding: ascii -*-
 """"""
-from colors import RGB
 
 
 class Pixel:
@@ -34,13 +33,20 @@ class RGBA(Pixel):
         self.opaqueness = opaqueness
 
     def display(self, char=' '):
-        self.color.set_background()
+        self.set_background()
         super().display(char)
 
+    def set_background(self):
+        print('\033[48;2', *self.color, sep=';', end='m')
+
+    def set_foreground(self):
+        print('\033[38;2', *self.color, sep=';', end='m')
+
     def rcomposite(self, other):
-        opaqueness = 1-(1-self.opaqueness)*(1-other.opaqueness)
-        color = (self.color*self.opaqueness+other.color*(1-self.opaqueness))//opaqueness
-        return RGBA(color, opaqueness)
+        transparancy = 1 - self.opaqueness
+        opaqueness = self.opaqueness + other.opaqueness * transparancy
+        color = (int((i*self.opaqueness+j*transparancy)/opaqueness) for i,j in zip(self.color, other.color))
+        return RGBA((*color, ), opaqueness)
 
     def composite(self, other):
         return other.rcomposite(self)

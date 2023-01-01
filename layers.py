@@ -1,13 +1,12 @@
-from utils import is_in, Matrix, v
-from pixels import Pixel
+from utils import is_in, v
 
 
 class Layer:
     def display(self, start, end):
         start_x, start_y = start
         end_x, end_y = end
-        for x in range(start_x, end_x):
-            for y in range(start_y, end_y):
+        for y in range(start_y, end_y):
+            for x in range(start_x, end_x):
                 self.get_pixel(v(x, y)).display()
             print()
 
@@ -16,15 +15,6 @@ class Layer:
 
     def wrap(self, wrapper, *args, **kwargs):
         return wrapper(self, *args, **kwargs)
-
-
-class NArrayLayer(Layer):
-    def __init__(self, narray, convert_item):
-        self.narray = narray
-        self.convert_item = covert_item
-
-    def get_pixel(self, point):
-        self.narray[self.convert_item(point)]
 
 
 class Image(Layer):
@@ -50,9 +40,11 @@ class LayerPile(Layer):
         self._layers = args
 
     def get_pixel(self, point):
-        pixel = Pixel()
-        for layer in self._layers:
-            bruh = layer.get_pixel(point)
-            pixel = pixel.composite(bruh)
-        return pixel
+        layer, *layers = self._layers
+        final_pixel = layer.get_pixel(point)
+        for layer in layers:
+            current_pixel = layer.get_pixel(point)
+            final_pixel = final_pixel.composite(current_pixel)
+        return final_pixel
  
+
