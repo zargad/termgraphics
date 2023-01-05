@@ -1,4 +1,5 @@
-from utils import is_in, v
+from multiprocessing import Pool
+from utils import is_in, Matrix
 
 
 class Layer:
@@ -7,8 +8,10 @@ class Layer:
         end_x, end_y = end
         for y in range(start_y, end_y):
             for x in range(start_x, end_x):
-                self.get_pixel(v(x, y)).display()
-            print()
+                print('\033[', end='')
+                print(y, x, sep=';', end='H')
+                self.get_pixel((x, y)).display()
+            #print()
 
     def get_pixel(self, point):
         raise NotImplementedError
@@ -36,7 +39,6 @@ class PixelLayer(Layer):
 
 class LayerPile(Layer):
     def __init__(self, *args):
-        super().__init__()
         self._layers = args
 
     def get_pixel(self, point):
@@ -44,7 +46,19 @@ class LayerPile(Layer):
         final_pixel = layer.get_pixel(point)
         for layer in layers:
             current_pixel = layer.get_pixel(point)
-            final_pixel = final_pixel.composite(current_pixel)
+            final_pixel += current_pixel
         return final_pixel
  
+
+class BufferLayer(Image):
+    def __init__(self, size): 
+        x, y = size
+        super().__init__([[None for __ in range(x)] for _ in range(y)])
+        self.size = size
+
+    def clear():
+        pass
+    
+    def append():
+        pass
 

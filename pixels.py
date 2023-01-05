@@ -1,15 +1,27 @@
 # -*- coding: ascii -*-
+from copy import copy
 """"""
 
 
 class Pixel:
+    def __init__(self, opaqueness=0):
+        self.opaqueness = opaqueness
+
+    def __bool__(self):
+        return bool(self.opaqueness)
+
+    def __imul__(self, x):
+        self.opaqueness *= x
+
     def display(self, text=' '):
         print(text, end='\033[0m')
 
-    def rcomposite(self, other):
-        return other
+    def __add__(self, other):
+        if other:
+            return other.__radd__(self)
+        return self
 
-    def composite(self, other):
+    def __radd__(self, other):
         return other
 
 
@@ -20,11 +32,8 @@ class CharPixel(Pixel):
     def display(self):
         super().display(self.char)
 
-    def rcomposite(self, other):
+    def __radd__(self, other):
         return self
-
-    def composite(self, other):
-        return other.rcomposite(self)
 
 
 class RGBA(Pixel):
@@ -42,12 +51,10 @@ class RGBA(Pixel):
     def set_foreground(self):
         print('\033[38;2', *self.color, sep=';', end='m')
 
-    def rcomposite(self, other):
+    def __radd__(self, other):
         transparancy = 1 - self.opaqueness
         opaqueness = self.opaqueness + other.opaqueness * transparancy
-        color = (int((i*self.opaqueness+j*transparancy)/opaqueness) for i,j in zip(self.color, other.color))
+        color = (int((i*self.opaqueness+j*transparancy)/opaqueness) 
+                 for i, j in zip(self.color, other.color))
         return RGBA((*color, ), opaqueness)
-
-    def composite(self, other):
-        return other.rcomposite(self)
 

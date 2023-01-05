@@ -1,21 +1,29 @@
 from numpy import array
 
 
-def v(*args, **kwargs):
-    return array(args, **kwargs)
-
-
-def is_in(start, end, point):
+def is_in_reg(start, end, point):
     start_x, start_y = start
     end_x, end_y = end
     x, y = point
     return (start_x <= x < end_x) and (start_y <= y < end_y)
 
 
+def is_in_subtract(start, end, point):
+    start_x, start_y = start
+    end_x, end_y = end
+    x, y = point
+    x -= start_x; y -= start_y
+    end_x -= start_x; end_y -= start_y
+    return (0 <= x < end_x) and (0 <= y < end_y)
+
+
+is_in = is_in_reg
+
+
 class Matrix:
     def __init__(self, *rows):
         self._rows = rows
-        self.size = v(len(rows), len(rows[0]))
+        self.size = (len(rows), len(rows[0]))
         for index, row in enumerate(rows):
             if len(row) != self.size[1]:
                 raise ValueError('All arguments should be of an equal length:' \

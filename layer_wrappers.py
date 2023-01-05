@@ -1,6 +1,6 @@
 # -*- coding: ascii -*-
+from operator import floordiv, mul, sub
 from utils import is_in
-from pixels import Pixel
 from layers import Layer
 
 
@@ -18,7 +18,7 @@ class Box(LayerWrapper):
     def get_pixel(self, point):
         if is_in(self.start, self.end, point):
             return self.wrapped_layer.get_pixel(point)
-        return Pixel()
+        return None
 
     def display(self, start=None, end=None):
         start = self.start if start is None else start
@@ -27,37 +27,34 @@ class Box(LayerWrapper):
 
 
 class Transform(LayerWrapper):
-    def __init__(self, wrapped_layer, func):
-        super.__init__(wrapped_layer)
-        self.func = func
+    def __init__(self, wrapped_layer, func, *constants):
+        super().__init__(wrapped_layer)
+        self._func = func
+        self.constants = constants
+
+    def func(self, point):
+        return self._func(point, *self.constants)
 
     def get_pixel(self, point):
         return self.wrapped_layer.get_pixel(self.func(point))
 
 
-class Stretch(LayerWrapper):
+class TransformBoth(Transform):
+    def func(self, point):
+        return tuple(self._func(i, *self.constants) for i in zip(point, self.constants))
+
+
+class Stretch(TransformBoth):
     def __init__(self, wrapped_layer, amount):
-        super().__init__(wrapped_layer)
-        self.amount = amount
-
-    def get_pixel(self, point):
-        return self.wrapped_layer.get_pixel(point // self.amount)
+        super().__init__(wrapped_layer, floordiv, amount)
 
 
-class Compress(LayerWrapper):
+class Compress(TransformBoth):
     def __init__(self, wrapped_layer, amount):
-        super().__init__(wrapped_layer)
-        self.amount = amount
-
-    def get_pixel(self, point):
-        return self.wrapped_layer.get_pixel(point * self.amount)
+        super().__init__(wrapped_layer, mul, amount)
 
 
-class Move(LayerWrapper):
+class Move(TransformBoth):
     def __init__(self, wrapped_layer, amount):
-        super().__init__(wrapped_layer)
-        self.amount = amount
-
-    def get_pixel(self, point):
-        return self.wrapped_layer.get_pixel(point - self.amount)
+        super().__init__(wrapped_layer, sub, amount)
 
