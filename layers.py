@@ -1,23 +1,17 @@
+from itertools import product
 from multiprocessing import Pool
-from utils import is_in, Matrix
+from utils import is_in, Matrix, move_cursor
 
 
 class Layer:
-    def display(self, start, end):
-        start_x, start_y = start
-        end_x, end_y = end
-        for y in range(start_y, end_y):
-            for x in range(start_x, end_x):
-                print('\033[', end='')
-                print(y, x, sep=';', end='H')
-                self.get_pixel((x, y)).display()
+    def display_print(self, range2d):
+        for point in product(*range2d):
+            move_cursor(point)
+            self.get_pixel(point).display()
             #print()
 
     def get_pixel(self, point):
         raise NotImplementedError
-
-    def wrap(self, wrapper, *args, **kwargs):
-        return wrapper(self, *args, **kwargs)
 
 
 class Image(Layer):

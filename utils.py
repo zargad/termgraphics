@@ -1,6 +1,11 @@
 from numpy import array
 
 
+def move_cursor(point):
+    print('\033[', end='')
+    print(*point, sep=';', end='H')
+
+
 def is_in_reg(start, end, point):
     start_x, start_y = start
     end_x, end_y = end
