@@ -1,13 +1,15 @@
 from itertools import product
 from multiprocessing import Pool
-from utils import is_in, Matrix, move_cursor
+from utils import Matrix, move_cursor
 
 
 class Layer:
     def display_print(self, range2d):
         for point in product(*range2d):
-            move_cursor(point)
-            self.get_pixel(point).display()
+            x, y = point
+            move_cursor((x + 1, y + 1))
+            pixel = self.get_pixel(point)
+            pixel.display()
             #print()
 
     def get_pixel(self, point):
@@ -30,19 +32,6 @@ class PixelLayer(Layer):
     def get_pixel(self, point):
         return self.pixel
 
-
-class LayerPile(Layer):
-    def __init__(self, *args):
-        self._layers = args
-
-    def get_pixel(self, point):
-        layer, *layers = self._layers
-        final_pixel = layer.get_pixel(point)
-        for layer in layers:
-            current_pixel = layer.get_pixel(point)
-            final_pixel += current_pixel
-        return final_pixel
- 
 
 class BufferLayer(Image):
     def __init__(self, size): 
