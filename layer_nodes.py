@@ -27,6 +27,7 @@ class LayerNode(Layer):
 
 class LayerWrapper(LayerNode):
     """A Layer that wraps another Layer's functionality."""
+    # pylint: disable=abstract-method
 
     def __init__(self):
         super().__init__()
@@ -128,10 +129,10 @@ class LambdaTransform(Transform):
 class TransformBoth(LambdaTransform):
     """Apply the same function to the both coordinates of the point in get_pixel."""
 
-    def __init__(self, func, *args, **kwargs):  # TODO **kwargs
+    def __init__(self, func, *args, **kwargs):
         super().__init__(func, *args)
 
-    def transform(self, point, *args, **kwargs):  # TODO **kwargs
+    def transform(self, point, *args, **kwargs):
         for coordinate, *args in zip(point, *args):
             yield super().transform(coordinate, *args)
 

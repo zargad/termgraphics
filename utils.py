@@ -33,6 +33,7 @@ class Matrix:
 
 class PaletteMatrix(Matrix):
     """The data is stored in a dict and the keys are stored in the matrix"""
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, *rows, **palette):
         super().__init__(*rows)
