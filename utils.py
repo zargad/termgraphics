@@ -8,10 +8,6 @@ def move_cursor(point):
     print(*point, sep=';', end='H')
 
 
-def zip(*args, **kwargs):
-
-
-
 class Matrix:
     """Array structure that can be indexed with a two dimentional point."""
 
