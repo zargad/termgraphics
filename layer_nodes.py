@@ -1,53 +1,71 @@
-# -*- coding: ascii -*-
+# -*- coding: utf-8 -*-
+"""Classes that inherit from LayerNode."""
 from operator import floordiv, mul, sub
 from layers import Layer
 
 
 class LayerNode(Layer):
+    """Layer that can be nested and be given from a collection of tags."""
+
     def __init__(self):
-        self._tag = ''
+        super().__init__()
+        self.tag_ = None
 
     def tag(self, tag):
-        self._tag = tag
+        """Set the tag."""
+        self.tag_ = tag
         return self
 
+    def is_tagged(self, tag):
+        """Get whether the layer is tagged or not."""
+        return tag == self.tag_
+
     def get_layer(self, current_tag, *tags):
-        return NotImplementedError
+        """Get a nested layer from a collection of tags."""
+        raise NotImplementedError
 
 
 class LayerWrapper(LayerNode):
+    """A Layer that wraps another Layer's functionality."""
+
     def __init__(self):
         super().__init__()
         self.wrapped_layer = None
 
     def get_layer(self, current_tag, *tags):
-        if current_tag == self._tag:
+        if self.is_tagged(current_tag):
             return self.wrapped_layer.get_layer(*tags) if tags else self.wrapped_layer
         return None
-        
+
     def __radd__(self, other):
         self.wrapped_layer = other
         return self
 
 
 class TaggedLayer(LayerWrapper):
+    """Returns the pixel without modifying it but adds a tag to the class."""
+
     def __init__(self, tag):
-        self._tag = tag
+        super().__init__()
+        self.tag(tag)
 
     def get_pixel(self, point):
         return self.wrapped_layer.get_pixel(point)
 
 
 class LayerPile(LayerNode):
+    """Contains a list of layers and returs the addition of their pixels."""
+
     def __init__(self, *args, **kwargs):
+        super().__init__()
         self.layers = [v + TaggedLayer(k) for (k, v) in kwargs.items()]
         self.layers.extend(args)
 
     def get_layer(self, current_tag, *tags):
-        if current_tag == self._tag:
-            next_tag = tags.pop(0)
+        if self.is_tagged(current_tag):
+            next_tag, *tags = tags
             for layer in self.layers:
-                if next_tag == layer._tag:
+                if layer.is_tagged(next_tag):
                     return layer.get_layer(*tags) if tags else layer
         return None
 
@@ -61,6 +79,8 @@ class LayerPile(LayerNode):
 
 
 class Box(LayerWrapper):
+    """Return only the pixels within a specific range."""
+
     def __init__(self, range2d):
         super().__init__()
         self.range2d = range2d
@@ -72,53 +92,64 @@ class Box(LayerWrapper):
             return self.wrapped_layer.get_pixel(point)
         return None
 
-    def display(self, range2d=None):
+    def display_print(self, range2d=None):
         if range2d is None:
             range2d = self.range2d
-        super().display(range2d)
+        super().display_print(range2d)
 
 
 class Transform(LayerWrapper):
+    """Apply a function to the point argument of 'get_pixel' before returning the pixel."""
+
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.args = args
         self.kwargs = kwargs
 
-    def func(self, point, *args, **kwargs):
+    def transform(self, point, *args, **kwargs):
+        """Transform a point to another one."""
         raise NotImplementedError
 
     def get_pixel(self, point):
-        return self.wrapped_layer.get_pixel(self.func(point, *self.args, **self.kwargs))
+        return self.wrapped_layer.get_pixel(self.transform(point, *self.args, **self.kwargs))
 
 
 class LambdaTransform(Transform):
+    """Get the transformation function from the constructor."""
+
     def __init__(self, func, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._func = func
+        self.func_ = func
 
-    def func(self, point, *args, **kwargs):
-        return self._func(point, *args, **kwargs)
+    def transform(self, point, *args, **kwargs):
+        return self.func_(point, *args, **kwargs)
 
 
 class TransformBoth(LambdaTransform):
-    def __init__(self, func, *args):
+    """Apply the same function to the both coordinates of the point in get_pixel."""
+
+    def __init__(self, func, *args, **kwargs):  # TODO **kwargs
         super().__init__(func, *args)
 
-    def func(self, point, *args):
-        return tuple(self._func(i, *a) for i,*a in zip(point, *args))
+    def transform(self, point, *args, **kwargs):  # TODO **kwargs
+        for coordinate, *args in zip(point, *args):
+            yield super().transform(coordinate, *args)
 
 
 class Stretch(TransformBoth):
+    """Stretch a Layer by an amount."""
+
     def __init__(self, amount):
         super().__init__(floordiv, amount)
 
 
 class Compress(TransformBoth):
+    """Compress a Layer by an amount."""
     def __init__(self, amount):
         super().__init__(mul, amount)
 
 
 class Move(TransformBoth):
+    """Offset a Layer by an amount."""
     def __init__(self, amount):
         super().__init__(sub, amount)
-
