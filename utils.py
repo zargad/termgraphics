@@ -1,43 +1,43 @@
-from numpy import array
+# -*- encode: utf-8 -*-
+"""Helper functions and classes for various modules in the library."""
 
 
 def move_cursor(point):
+    """Move the terminal cursor to a position from a two dimentional point."""
     print('\033[', end='')
     print(*point, sep=';', end='H')
 
 
+def zip(*args, **kwargs):
+
+
+
 class Matrix:
+    """Array structure that can be indexed with a two dimentional point."""
+
     def __init__(self, *rows):
         self._rows = rows
         self.size = (range(len(rows)), range(len(rows[0])))
         for index, row in enumerate(rows):
             if len(row) != len(rows[0]):
                 raise ValueError('All arguments should be of an equal length:' \
-                                 'argument {index} and 0 are not the same length.')
+                        f'argument {index} and 0 are not the same length.')
 
     def __getitem__(self, item):
         x, y = item
         x_size, y_size = self.size
-        if x in x_size and y in y_size: 
+        if x in x_size and y in y_size:
             return self._rows[x][y]
         return None
 
     def __setitem__(self, item, value):
-       x, y = item
-       self._rows[y][x] = value
+        x, y = item
+        self._rows[y][x] = value
 
 
-class ListPaletteMatrix(Matrix):
-    def __init__(self, palette, *rows):
-        super().__init__(*rows)
-        self.palette = palette
+class PaletteMatrix(Matrix):
+    """The data is stored in a dict and the keys are stored in the matrix"""
 
-    def __getitem__(self, item):
-        index = super().__getitem__(item)
-        return None if index is None else self.palette[index]
-
-
-class DictPaletteMatrix(Matrix):
     def __init__(self, *rows, **palette):
         super().__init__(*rows)
         self.palette = palette
@@ -45,4 +45,3 @@ class DictPaletteMatrix(Matrix):
     def __getitem__(self, item):
         index = super().__getitem__(item)
         return None if index is None else self.palette[index]
-
