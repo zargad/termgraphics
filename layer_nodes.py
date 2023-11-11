@@ -11,11 +11,6 @@ class LayerWrapper(Layer):
         super().__init__()
         self.wrapped_layer = None
 
-    def get_sub_layers(self, current_tag, *tags):
-        if self.wrapped_layer.tag_ == current_tag:
-            return self.wrapped_layer.get_layer(*tags)
-        return None
-
     def get_pixel(self, point):
         get_pixel = self.wrapped_layer.get_pixel
         return self.get_wrapped_pixel(get_pixel, point)
@@ -30,19 +25,18 @@ class LayerWrapper(Layer):
 
 class LayerChain(LayerWrapper):
     def __init__(self, base, **wrappers):
-        self.wrapped_layer = base.tag('base')
-        for (tag_, wrapper) in wrappers.items():
-            self.wrapped_layer += wrapper.tag(tag_)
+        self.wrapped_layer = base
+        for wrapper in wrappers.values():
+            self.wrapped_layer += wrapper
+        self.tags = list(reversed(wrappers.keys()))
+        self.tags.append('base')
 
-    def get_sub_layer(self, current_tag, *tags):
-        i = self.wrapped_layer
-        if i.tag_ == current_tag:
-            return i
-        while i.tag_ != 'base':
-            i = i.wrapped_layer
-            if i.tag_ == current_tag:
-                return i
-        return None
+    def get_layer(self, tag):
+        index = self.tags.index(tag)
+        layer = self.wrapped_layer
+        for _ in range(index):
+            layer = layer.wrapped_layer
+        return layer
 
     def get_wrapped_pixel(self, get_pixel, point):
         return get_pixel(point)
@@ -95,7 +89,7 @@ class Transform(LayerWrapper):
         raise NotImplementedError
 
     def get_wrapped_pixel(self, get_pixel, point):
-        return get_pixel(self.transform(point, *self.args, **self.kwargs))
+        return get_pixel(tuple(self.transform(point, *self.args, **self.kwargs)))
 
 
 class LambdaTransform(Transform):

@@ -8,13 +8,6 @@ from utils import move_cursor
 
 class Layer:
     """Can get Pixels from two dimentional points and display them in a grid."""
-    def __init__(self):
-        self.tag_ = None
-
-    def get_layer_by_path(self, path, seperator='.'):
-        tags = path.split(seperator)
-        return self.get_layer(*tags)
-
     def display_print(self, range2d):
         """Displays the Pixels in a grid from two ranges."""
         for point in product(*range2d):
@@ -28,21 +21,6 @@ class Layer:
         """Get a Pixel from a point."""
         raise NotImplementedError
 
-    def tag(self, tag_):
-        self.tag_ = tag_
-        return self
-
-    def get_layer(self, *tags):
-        if not tags:
-            return self
-        sub_layer = self.get_sub_layer(*tags)
-        if sub_layer is None:
-            raise KeyError(f'{self} does not contain a Layer with the tags: {tags}.')
-        return sub_layer
-
-    def get_sub_layer(self, current_tag, *tags) -> Self | None:
-        return None
-
 
 class Image(Layer):
     """Get pixels from a matrix."""
@@ -52,6 +30,22 @@ class Image(Layer):
 
     def get_pixel(self, point):
         return self.matrix[point]
+
+
+class Tiles(Layer):
+    """Get pixels from a matrix."""
+
+    def __init__(self, size, matrix):
+        self.size = size
+        self.matrix = matrix
+
+    def get_pixel(self, point):
+        x, y = point
+        size_x, size_y = self.size
+        tile = self.matrix[(x // size_x, y // size_y)]
+        if tile is None:
+            return None
+        return tile[(x % size_x, y % size_y)]
 
 
 class PixelLayer(Layer):
@@ -65,19 +59,16 @@ class PixelLayer(Layer):
         return self.pixel
 
 
-class LayerPile(Layer):
+class LayerList(Layer):
     """Contains a list of layers and returs the addition of their pixels."""
 
-    def __init__(self, **layers):
+    def __init__(self, *layers):
         super().__init__()
-        self.layers = [layer.tag(tag_) for (tag_, layer) in layers.items()]
+        self.layers = layers
 
-    def get_sub_layer(self, current_tag, *tags):
-        for layer in self.layers:
-            if layer.tag_ == current_tag:
-                return layer.get_layer(*tags)
-        return None
 
+class LayerPile(LayerList):
+    """Contains a list of layers and returs the addition of their pixels."""
     def get_pixel(self, point):
         layer, *layers = self.layers
         final_pixel = layer.get_pixel(point)
@@ -85,6 +76,24 @@ class LayerPile(Layer):
             current_pixel = layer.get_pixel(point)
             final_pixel += current_pixel
         return final_pixel
+
+
+class LayerTilesVert(LayerList):
+    """Contains a list of layers and returs the addition of their pixels."""
+
+    def __init__(self, tile_length, *layers):
+        super().__init__(*layers)
+        self.tile_length
+
+    def get_pixel(self, point):
+        x, y = point
+        index = x // self.tile_length
+        if 0 <= index < len(self.layers):
+            layer = self.layers[index]
+            x %= self.tile_length
+            point = (x, y)
+            return layer.get_pixel(point)
+        return None
 
 
 # class BufferLayer(Image):

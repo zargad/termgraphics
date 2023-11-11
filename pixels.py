@@ -128,7 +128,7 @@ class RGBA(Pixel):
             return type(other)((*color, ), opaqueness)
 
 
-Colors = {
+colors = {
     'black': RGBA.from_hex(0x000000FF),
     'red': RGBA.from_hex(0xFF0000FF),
     'yellow': RGBA.from_hex(0xFFFF00FF),

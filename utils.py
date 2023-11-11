@@ -47,6 +47,9 @@ class PaletteMatrix(Matrix):
         super().__init__(*rows)
         self.palette = palette
 
+    def get_palette(self, item):
+        return super().__getitem__(item)
+
     def __getitem__(self, item):
-        index = super().__getitem__(item)
+        index = self.get_palette(item)
         return None if index is None else self.palette[index]
