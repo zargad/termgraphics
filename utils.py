@@ -8,6 +8,14 @@ def move_cursor(point):
     print(*point, sep=';', end='H')
 
 
+def range_list(*ranges):
+    return list(map(range, ranges))
+
+
+def range_tuple(*ranges):
+    return tuple(map(range, ranges))
+
+
 class Matrix:
     """Array structure that can be indexed with a two dimentional point."""
 
