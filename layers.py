@@ -48,7 +48,7 @@ class Tiles(Layer):
         return tile[(x % size_x, y % size_y)]
 
 
-class PixelLayer(Layer):
+class UniformLayer(Layer):
     """Return the same Pixel for every point."""
 
     def __init__(self, pixel):

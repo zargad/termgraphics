@@ -122,6 +122,19 @@ class RGBA(Pixel):
         def __init__(self, coefficients):
             self.coefficients = coefficients
 
+        @property
+        def coefficients(self):
+            return self._coefficients
+
+        @color.setter
+        def color(self, value):
+            if len(value) != 3:
+                raise ValueError('color should be the length of 3')
+            for i in value:
+                if not 0 <= i <= 1:
+                    raise ValueError('all values in color should be between 0 and 255')
+            self._coefficients = value
+
         def __radd__(self, other):
             color = (a*c for (a, c) in zip(self.coefficients, other.color))
             opaqueness = other.opaqueness
@@ -137,3 +150,4 @@ colors = {
     'blue': RGBA.from_hex(0x0000FFFF),
     'magenta': RGBA.from_hex(0xFF00FFFF),
 }
+
